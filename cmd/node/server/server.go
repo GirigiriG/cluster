@@ -8,6 +8,7 @@ import (
 	"net"
 
 	"github.com/GirigiriG/cluster/cmd/node"
+	"github.com/GirigiriG/cluster/internal/protocol"
 )
 
 func Run() net.Listener {
@@ -28,7 +29,6 @@ func HandleConnection(conn net.Conn) {
 	for {
 		var length uint32
 		err := binary.Read(conn, binary.BigEndian, &length)
-
 		if err != nil {
 			if err == io.EOF {
 				// fmt.Println("client disconnected")
@@ -41,11 +41,13 @@ func HandleConnection(conn net.Conn) {
 
 		buffer := make([]byte, length)
 		_, err = io.ReadFull(conn, buffer)
-
+		
+		node, err := protocol.DecodeNode(buffer)
 		if err != nil {
 			fmt.Println(err)
 			continue
 		}
-		fmt.Println(string(buffer))
+
+		fmt.Println(node)
 	}
 }

@@ -1,9 +1,12 @@
 package main
 
 import (
+	"bytes"
 	"crypto/tls"
 	"crypto/x509"
+	"encoding/binary"
 	"fmt"
+	"log"
 	"net"
 	"os"
 
@@ -40,6 +43,14 @@ func main() {
 }
 
 func SendMessage(conn net.Conn, message []byte) error {
+	buf := new(bytes.Buffer)
+	if err := binary.Write(buf, binary.BigEndian, uint32(len(message))); err != nil {
+		log.Fatal(err)
+	}
+
+	conn.Write(buf.Bytes())
+
+	fmt.Println(message)
 
 	_, err := conn.Write(message)
 	if err != nil {
