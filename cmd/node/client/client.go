@@ -3,16 +3,14 @@ package main
 import (
 	"crypto/tls"
 	"crypto/x509"
-	"encoding/binary"
 	"fmt"
 	"net"
 	"os"
-	"strings"
+
+	"github.com/GirigiriG/cluster/internal/protocol"
 )
 
 func main() {
-	args := os.Args
-
 	cert, err := os.ReadFile("../../../certs/server.crt")
 	if err != nil {
 		panic(err)
@@ -32,20 +30,18 @@ func main() {
 	}
 	defer conn.Close()
 
-	message := strings.Join(args[1:], " ")
-	SendMessage(conn, message)
+	payload, err := protocol.EncodeNode(protocol.Node{
+		ID:   42,
+		Name: "Gideon",
+	})
+
+	fmt.Println(protocol.DecodeNode(payload))
+	SendMessage(conn, payload)
 }
 
-func SendMessage(conn net.Conn, message string) error {
-	data := []byte(message)
+func SendMessage(conn net.Conn, message []byte) error {
 
-	// Sending message lenghth
-	err := binary.Write(conn, binary.BigEndian, uint32(len(data)))
-	if err != nil {
-		return err
-	}
-	// send the message
-	_, err = conn.Write(data)
+	_, err := conn.Write(message)
 	if err != nil {
 		return err
 	}
