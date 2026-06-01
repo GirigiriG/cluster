@@ -23,7 +23,9 @@ func main() {
 	certPool.AppendCertsFromPEM(cert)
 
 	cfg := &tls.Config{
-		RootCAs: certPool,
+		RootCAs:    certPool,
+		ClientAuth: tls.RequireAndVerifyClientCert,
+		
 	}
 
 	conn, err := tls.Dial("tcp", "localhost:5341", cfg)
@@ -38,24 +40,25 @@ func main() {
 		Name: "Gideon",
 	})
 
-	fmt.Println(protocol.DecodeNode(payload))
 	SendMessage(conn, payload)
 }
 
 func SendMessage(conn net.Conn, message []byte) error {
 	buf := new(bytes.Buffer)
-	if err := binary.Write(buf, binary.BigEndian, uint32(len(message))); err != nil {
-		log.Fatal(err)
-	}
+	err := binary.Write(buf, binary.BigEndian, uint32(len(message)))
+	Must(err)
 
-	conn.Write(buf.Bytes())
+	_, err = buf.Write(message)
+	Must(err)
 
-	fmt.Println(message)
-
-	_, err := conn.Write(message)
-	if err != nil {
-		return err
-	}
+	_, err = conn.Write(buf.Bytes())
+	Must(err)
 
 	return nil
+}
+
+func Must(err error) {
+	if err != nil {
+		log.Fatal(err)
+	}
 }

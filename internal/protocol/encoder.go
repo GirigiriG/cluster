@@ -5,11 +5,6 @@ import (
 	"encoding/binary"
 )
 
-type Node struct {
-	ID   uint32
-	Name string
-}
-
 func EncodeNode(n Node) ([]byte, error) {
 	buf := new(bytes.Buffer)
 
